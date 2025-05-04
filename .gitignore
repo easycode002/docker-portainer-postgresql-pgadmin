@@ -1,0 +1,5 @@
+/data/pgadmin_data/*
+/data/portainer_data/*
+/data/postgres_data/*
+
+.env
