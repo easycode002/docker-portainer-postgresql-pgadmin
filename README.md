@@ -1,3 +1,4 @@
+```sh
 version: '3.8'
 
 services:
@@ -8,9 +9,9 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - ./data/portainer_data:/data  # Use the data directory for persistent storage
+      - ./data/portainer_data:/data
     environment:
-      - TZ=${TZ}  # Reference environment variable from .env
+      - TZ=${TZ}
     networks:
       - portainer_network
     deploy:
@@ -38,13 +39,13 @@ services:
     container_name: postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}  # Reference environment variables
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
-      - ./data/postgres_data:/var/lib/postgresql/data  # Use the data directory for persistent storage
+      - ./data/postgres_data:/var/lib/postgresql/data
     networks:
       - portainer_network
     deploy:
@@ -67,12 +68,50 @@ services:
       start_period: 10s
       timeout: 5s
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    volumes:
+      - ./data/pgadmin_data:/var/lib/pgadmin
+    networks:
+      - portainer_network
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
 volumes:
   portainer_data:
     driver: local
   postgres_data:
     driver: local
+  pgadmin_data:
+    driver: local
 
 networks:
   portainer_network:
     driver: bridge
+```
